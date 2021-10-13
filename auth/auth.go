@@ -7,6 +7,9 @@ import (
 	"net/http"
 )
 
+/* Login takes email and controller url as parameters.
+It sends login request to the controller and returns response from controller or error.
+*/
 func Login(anEmail string, url string) (authResponse, error) {
 	jsonReq, err := json.Marshal(email{anEmail})
 	if err != nil {
@@ -32,6 +35,9 @@ func Login(anEmail string, url string) (authResponse, error) {
 	return newResponse(data, resp.StatusCode), nil
 }
 
+/* LoginOTP takes email, code/OTP and controller url as parameters.
+LoginOTP should be used in the case if smtp is enabled.
+*/
 func LoginOTP(email string, code string, url string) (authResponse, error) {
 	jsonReq, err := json.Marshal(emailAndCode{email, code})
 	if err != nil {

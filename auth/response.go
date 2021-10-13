@@ -8,21 +8,21 @@ type response struct {
 	data       map[string]interface{}
 	statusCode int
 }
+type baseResponse interface {
+	Data() map[string]interface{}
+	StatusCode() int
+}
 type authResponse interface {
 	baseResponse
 	AuthToken() string
 	SMTPEnabled() bool
 }
 
-type baseResponse interface {
-	Data() map[string]interface{}
-	StatusCode() int
-}
-
 func newResponse(data map[string]interface{}, statusCode int) *response {
 	return &response{data: data, statusCode: statusCode}
 }
 
+//AuthToken() returns access token from the controller response body
 func (r *response) AuthToken() string {
 	var result string
 
@@ -34,6 +34,7 @@ func (r *response) AuthToken() string {
 	return result
 }
 
+//SMTPEnabled() checks if the smtp is enabled from the response body of Login()
 func (r *response) SMTPEnabled() bool {
 	var result bool
 
@@ -50,10 +51,12 @@ func (r *response) SMTPEnabled() bool {
 	return result
 }
 
+//Data() returns the data from the controller response body
 func (r *response) Data() map[string]interface{} {
 	return r.data
 }
 
+//StatusCode() returns the statuscode of the controller response
 func (r *response) StatusCode() int {
 	return r.statusCode
 }
