@@ -10,30 +10,30 @@ func TestResponseAuthToken(t *testing.T) {
 	assert := assert.New(t)
 
 	cases := []struct {
-		data           map[string]interface{}
+		response       Response
 		expectedResult string
 		msg            string
 	}{
 		{
 			msg:            "without access",
-			data:           map[string]interface{}{},
+			response:       Response{},
 			expectedResult: "",
 		},
 		{
 			msg:            "access exits",
-			data:           map[string]interface{}{"access": "access token"},
+			response:       Response{Access: "access token"},
 			expectedResult: "access token",
 		},
 		{
 			msg:            "access is not a string",
-			data:           map[string]interface{}{"access": 3.14},
+			response:       Response{},
 			expectedResult: "",
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.msg, func(t *testing.T) {
-			r := response{data: c.data}
+			r := Response{Access: c.response.Access}
 			assert.Equal(c.expectedResult, r.AuthToken())
 		})
 	}
@@ -43,45 +43,25 @@ func TestResponseSMTPEnabled(t *testing.T) {
 	assert := assert.New(t)
 
 	cases := []struct {
-		data           map[string]interface{}
+		response       Response
 		expectedResult bool
 		msg            string
 	}{
 		{
-			msg:            "without smtp_enabled",
-			data:           map[string]interface{}{},
-			expectedResult: false,
-		},
-		{
-			msg:            "smtp_enabled is 'true'",
-			data:           map[string]interface{}{"smtp_enabled": "true"},
-			expectedResult: true,
-		},
-		{
-			msg:            "smtp_enabled is 'false'",
-			data:           map[string]interface{}{"smtp_enabled": "false"},
+			msg:            "smtp_enabled is false",
+			response:       Response{Smtp_enabled: false},
 			expectedResult: false,
 		},
 		{
 			msg:            "smtp_enabled is true",
-			data:           map[string]interface{}{"smtp_enabled": true},
+			response:       Response{Smtp_enabled: true},
 			expectedResult: true,
-		},
-		{
-			msg:            "smtp_enabled is false",
-			data:           map[string]interface{}{"smtp_enabled": false},
-			expectedResult: false,
-		},
-		{
-			msg:            "smtp_enabled is not a bool",
-			data:           map[string]interface{}{"smtp_enabled": "string"},
-			expectedResult: false,
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.msg, func(t *testing.T) {
-			r := response{data: c.data}
+			r := Response{Smtp_enabled: c.response.Smtp_enabled}
 			assert.Equal(c.expectedResult, r.SMTPEnabled())
 		})
 	}
