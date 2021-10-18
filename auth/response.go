@@ -16,16 +16,16 @@ type Response struct {
 }
 
 //newResponse takes the response from controller in map format and stores it into the 'response' Struct
-func newResponse(data map[string]interface{}, statusCode int) Response {
+func newResponse(data map[string]interface{}, statusCode int) *Response {
 	if statusCode == http.StatusOK {
-		return Response{Refresh: fmt.Sprintf("%v", data["refresh"]),
+		return &Response{Refresh: fmt.Sprintf("%v", data["refresh"]),
 			Access:       fmt.Sprintf("%v", data["access"]),
 			Department:   fmt.Sprintf("%v", data["department"]),
 			Smtp_enabled: data["smtp_enabled"].(bool),
 			ErrorDetail:  "No error!",
 			Status_code:  statusCode}
 	} else {
-		return Response{ErrorDetail: fmt.Sprintf("%v", data), Status_code: statusCode}
+		return &Response{ErrorDetail: fmt.Sprintf("%v", data), Status_code: statusCode}
 	}
 
 }
