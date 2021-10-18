@@ -106,12 +106,10 @@ func (r *Response) GenerateAccessToken(url string) (*Response, error) {
 		return r, err
 	}
 	defer resp.Body.Close()
-
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return r, err
 	}
-
 	var data map[string]interface{}
 	err = json.Unmarshal([]byte(bodyBytes), &data)
 	if err != nil {

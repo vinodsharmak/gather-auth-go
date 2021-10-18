@@ -110,3 +110,36 @@ func loginOTPHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 }
+func TestVerifyAccessToken(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer server.Close()
+
+	cluster := &Response{
+		Refresh: "some_refresh",
+		Access:  "some_access",
+	}
+
+	_, err := cluster.VerifyAccessToken(server.URL)
+	if err != nil {
+		t.Errorf("Unexpected error on request: %s", err)
+	}
+}
+
+func TestGenerateAccessToken(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, `{"access":"some_access_token","refresh":"some_refresh_token"}`)
+	}))
+	defer server.Close()
+
+	cluster := &Response{
+		Refresh: "some_refresh",
+		Access:  "some_access",
+	}
+	response, err := cluster.GenerateAccessToken(server.URL)
+	if err != nil {
+		t.Errorf("Unexpected error on request: %s", err)
+	}
+	if response.Access != "some_access_token" {
+		t.Errorf("Expected access token: some_access_token, but got access token: %s", response.Access)
+	}
+}
