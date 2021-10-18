@@ -14,30 +14,23 @@ It sends login request to the controller and returns response from controller or
 func Login(anEmail string, url string) (*Response, error) {
 	jsonReq, err := json.Marshal(email{anEmail})
 	if err != nil {
-		fmt.Println("Error-1")
 		return newResponse(nil, 0), err
 	}
 	resp, err := http.Post(url+"/api/v1/token/", "application/json; charset=utf-8", bytes.NewBuffer(jsonReq))
 	if err != nil {
-		fmt.Println("Error-2")
 		return newResponse(nil, resp.StatusCode), err
 	}
-	fmt.Println("Hit-1, Code:", resp.StatusCode)
 	defer resp.Body.Close()
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error-3")
 		return newResponse(nil, resp.StatusCode), err
 	}
-	fmt.Println("Hit-2")
 	var data map[string]interface{}
 	err = json.Unmarshal([]byte(bodyBytes), &data)
 	if err != nil {
-		fmt.Println("Error-4")
 		return newResponse(data, resp.StatusCode), err
 	}
-	fmt.Println(data)
 	return newResponse(data, resp.StatusCode), nil
 }
 
