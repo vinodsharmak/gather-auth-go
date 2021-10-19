@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	"bitbucket.org/gath3rio/gather-auth-go/constants"
 )
 
 /* Login takes email and controller url as parameters.
@@ -15,7 +17,7 @@ func Login(anEmail string, url string) (Response, error) {
 	if err != nil {
 		return Response{}, err
 	}
-	resp, err := http.Post(url+"/api/v1/token/", "application/json; charset=utf-8", bytes.NewBuffer(jsonReq))
+	resp, err := http.Post(url+"/api/v1/token/", constants.Format, bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return Response{Status_code: resp.StatusCode}, err
 	}
@@ -43,7 +45,7 @@ func LoginOTP(email string, code string, url string) (Response, error) {
 		return Response{}, err
 	}
 
-	resp, err := http.Post(url+"/api/v1/token/code/", "application/json; charset=utf-8", bytes.NewBuffer(jsonReq))
+	resp, err := http.Post(url+"/api/v1/token/code/", constants.Format, bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return Response{Status_code: resp.StatusCode}, err
 	}
@@ -72,7 +74,7 @@ func (r *Response) VerifyAccessToken(url string) (bool, error) {
 		return false, err
 	}
 
-	resp, err := http.Post(url+"/api/v1/token/verify/", "application/json; charset=utf-8", bytes.NewBuffer(jsonReq))
+	resp, err := http.Post(url+"/api/v1/token/verify/", constants.Format, bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return false, err
 	}
@@ -95,7 +97,7 @@ func (r *Response) RefreshAccessToken(url string) (*Response, error) {
 		return r, err
 	}
 
-	resp, err := http.Post(url+"/api/v1/token/refresh/", "application/json; charset=utf-8", bytes.NewBuffer(jsonReq))
+	resp, err := http.Post(url+"/api/v1/token/refresh/", constants.Format, bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return r, err
 	}
