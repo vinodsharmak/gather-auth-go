@@ -125,7 +125,7 @@ func TestVerifyAccessToken(t *testing.T) {
 	}
 }
 
-func TestGenerateAccessToken(t *testing.T) {
+func TestRefreshAccessToken(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, `{"access":"some_access_token","refresh":"some_refresh_token"}`)
 	}))
@@ -135,7 +135,7 @@ func TestGenerateAccessToken(t *testing.T) {
 		Refresh: "some_refresh",
 		Access:  "some_access",
 	}
-	response, err := cluster.GenerateAccessToken(server.URL)
+	response, err := cluster.RefreshAccessToken(server.URL)
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}

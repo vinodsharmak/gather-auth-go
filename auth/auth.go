@@ -3,7 +3,6 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -11,55 +10,57 @@ import (
 /* Login takes email and controller url as parameters.
 It sends login request to the controller and returns response from controller or error.
 */
-func Login(anEmail string, url string) (*Response, error) {
+func Login(anEmail string, url string) (Response, error) {
 	jsonReq, err := json.Marshal(email{anEmail})
 	if err != nil {
-		return newResponse(nil, 0), err
+		return Response{}, err
 	}
 	resp, err := http.Post(url+"/api/v1/token/", "application/json; charset=utf-8", bytes.NewBuffer(jsonReq))
 	if err != nil {
-		return newResponse(nil, resp.StatusCode), err
+		return Response{Status_code: resp.StatusCode}, err
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return newResponse(nil, resp.StatusCode), err
+		return Response{Status_code: resp.StatusCode}, err
 	}
-	var data map[string]interface{}
+	var data Response
 	err = json.Unmarshal([]byte(bodyBytes), &data)
+	data.Status_code = resp.StatusCode
 	if err != nil {
-		return newResponse(data, resp.StatusCode), err
+		return data, err
 	}
-	return newResponse(data, resp.StatusCode), nil
+	return data, nil
 }
 
 /* LoginOTP takes email, code/OTP and controller url as parameters.
 LoginOTP should be used in the case if smtp is enabled.
 */
-func LoginOTP(email string, code string, url string) (*Response, error) {
+func LoginOTP(email string, code string, url string) (Response, error) {
 	jsonReq, err := json.Marshal(emailAndCode{email, code})
 	if err != nil {
-		return newResponse(nil, 0), err
+		return Response{}, err
 	}
 
 	resp, err := http.Post(url+"/api/v1/token/code/", "application/json; charset=utf-8", bytes.NewBuffer(jsonReq))
 	if err != nil {
-		return newResponse(nil, resp.StatusCode), err
+		return Response{Status_code: resp.StatusCode}, err
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return newResponse(nil, resp.StatusCode), err
+		return Response{Status_code: resp.StatusCode}, err
 	}
 
-	var data map[string]interface{}
+	var data Response
 	err = json.Unmarshal([]byte(bodyBytes), &data)
+	data.Status_code = resp.StatusCode
 	if err != nil {
-		return newResponse(data, resp.StatusCode), err
+		return data, err
 	}
-	return newResponse(data, resp.StatusCode), nil
+	return data, nil
 }
 
 /* VerifyAccessToken takes controller url as parameter and can only be called as a Response function
@@ -85,10 +86,10 @@ func (r *Response) VerifyAccessToken(url string) (bool, error) {
 
 }
 
-/* GenerateAccessToken takes controller url as a prameter and can be called as a response function.
-It generates a new access token using the existing refresh token
+/* RefreshAccessToken takes controller url as a prameter and can be called as a response function.
+It refresh the access token using the existing refresh token
 */
-func (r *Response) GenerateAccessToken(url string) (*Response, error) {
+func (r *Response) RefreshAccessToken(url string) (*Response, error) {
 	jsonReq, err := json.Marshal(refreshAccessToken{r.Refresh})
 	if err != nil {
 		return r, err
@@ -103,18 +104,11 @@ func (r *Response) GenerateAccessToken(url string) (*Response, error) {
 	if err != nil {
 		return r, err
 	}
-	var data map[string]interface{}
-	err = json.Unmarshal([]byte(bodyBytes), &data)
+	r.Status_code = resp.StatusCode
+	err = json.Unmarshal([]byte(bodyBytes), &r)
 	if err != nil {
 		return r, err
 	}
-	if resp.StatusCode == http.StatusOK {
-		r.Access = fmt.Sprintf("%v", data["access"])
-		return r, nil
-	} else {
-		r.ErrorDetail = fmt.Sprintf("%v", data["detail"])
-		r.Status_code = resp.StatusCode
-		return r, nil
-	}
+	return r, nil
 
 }
