@@ -3,11 +3,10 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
-
-	"bitbucket.org/gath3rio/gather-auth-go/constants"
 )
+
+const contentType = "application/json; charset=utf-8"
 
 /* Login takes email and controller url as parameters.
 It sends login request to the controller and returns response from controller or error.
@@ -17,18 +16,14 @@ func Login(anEmail string, url string) (Response, error) {
 	if err != nil {
 		return Response{}, err
 	}
-	resp, err := http.Post(url+"/api/v1/token/", constants.Format, bytes.NewBuffer(jsonReq))
+	resp, err := http.Post(url+"/api/v1/token/", contentType, bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return Response{StatusCode: resp.StatusCode}, err
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return Response{StatusCode: resp.StatusCode}, err
-	}
 	var data Response
-	err = json.Unmarshal([]byte(bodyBytes), &data)
+	err = json.NewDecoder(resp.Body).Decode(&data)
 	data.StatusCode = resp.StatusCode
 	if err != nil {
 		return data, err
@@ -45,19 +40,14 @@ func LoginOTP(email string, code string, url string) (Response, error) {
 		return Response{}, err
 	}
 
-	resp, err := http.Post(url+"/api/v1/token/code/", constants.Format, bytes.NewBuffer(jsonReq))
+	resp, err := http.Post(url+"/api/v1/token/code/", contentType, bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return Response{StatusCode: resp.StatusCode}, err
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return Response{StatusCode: resp.StatusCode}, err
-	}
-
 	var data Response
-	err = json.Unmarshal([]byte(bodyBytes), &data)
+	err = json.NewDecoder(resp.Body).Decode(&data)
 	data.StatusCode = resp.StatusCode
 	if err != nil {
 		return data, err
@@ -74,7 +64,7 @@ func (r *Response) VerifyAccessToken(url string) (bool, error) {
 		return false, err
 	}
 
-	resp, err := http.Post(url+"/api/v1/token/verify/", constants.Format, bytes.NewBuffer(jsonReq))
+	resp, err := http.Post(url+"/api/v1/token/verify/", contentType, bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return false, err
 	}
@@ -97,20 +87,15 @@ func (r *Response) RefreshAccessToken(url string) (*Response, error) {
 		return r, err
 	}
 
-	resp, err := http.Post(url+"/api/v1/token/refresh/", constants.Format, bytes.NewBuffer(jsonReq))
+	resp, err := http.Post(url+"/api/v1/token/refresh/", contentType, bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return r, err
 	}
 	defer resp.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return r, err
-	}
 	r.StatusCode = resp.StatusCode
-	err = json.Unmarshal([]byte(bodyBytes), &r)
+	err = json.NewDecoder(resp.Body).Decode(&r)
 	if err != nil {
 		return r, err
 	}
 	return r, nil
-
 }
