@@ -19,17 +19,17 @@ func Login(anEmail string, url string) (Response, error) {
 	}
 	resp, err := http.Post(url+"/api/v1/token/", constants.Format, bytes.NewBuffer(jsonReq))
 	if err != nil {
-		return Response{Status_code: resp.StatusCode}, err
+		return Response{StatusCode: resp.StatusCode}, err
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return Response{Status_code: resp.StatusCode}, err
+		return Response{StatusCode: resp.StatusCode}, err
 	}
 	var data Response
 	err = json.Unmarshal([]byte(bodyBytes), &data)
-	data.Status_code = resp.StatusCode
+	data.StatusCode = resp.StatusCode
 	if err != nil {
 		return data, err
 	}
@@ -47,18 +47,18 @@ func LoginOTP(email string, code string, url string) (Response, error) {
 
 	resp, err := http.Post(url+"/api/v1/token/code/", constants.Format, bytes.NewBuffer(jsonReq))
 	if err != nil {
-		return Response{Status_code: resp.StatusCode}, err
+		return Response{StatusCode: resp.StatusCode}, err
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return Response{Status_code: resp.StatusCode}, err
+		return Response{StatusCode: resp.StatusCode}, err
 	}
 
 	var data Response
 	err = json.Unmarshal([]byte(bodyBytes), &data)
-	data.Status_code = resp.StatusCode
+	data.StatusCode = resp.StatusCode
 	if err != nil {
 		return data, err
 	}
@@ -106,7 +106,7 @@ func (r *Response) RefreshAccessToken(url string) (*Response, error) {
 	if err != nil {
 		return r, err
 	}
-	r.Status_code = resp.StatusCode
+	r.StatusCode = resp.StatusCode
 	err = json.Unmarshal([]byte(bodyBytes), &r)
 	if err != nil {
 		return r, err

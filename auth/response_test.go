@@ -34,7 +34,7 @@ func TestResponseAuthToken(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.msg, func(t *testing.T) {
 			r := Response{Access: c.response.Access}
-			assert.Equal(c.expectedResult, r.AuthToken())
+			assert.Equal(c.expectedResult, r.Access)
 		})
 	}
 }
@@ -49,20 +49,20 @@ func TestResponseSMTPEnabled(t *testing.T) {
 	}{
 		{
 			msg:            "smtp_enabled is false",
-			response:       Response{Smtp_enabled: false},
+			response:       Response{SmtpEnabled: false},
 			expectedResult: false,
 		},
 		{
 			msg:            "smtp_enabled is true",
-			response:       Response{Smtp_enabled: true},
+			response:       Response{SmtpEnabled: true},
 			expectedResult: true,
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.msg, func(t *testing.T) {
-			r := Response{Smtp_enabled: c.response.Smtp_enabled}
-			assert.Equal(c.expectedResult, r.SMTPEnabled())
+			r := Response{SmtpEnabled: c.response.SmtpEnabled}
+			assert.Equal(c.expectedResult, r.SmtpEnabled)
 		})
 	}
 }

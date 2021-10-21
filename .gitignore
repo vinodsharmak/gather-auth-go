@@ -47,5 +47,4 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
-main.go
 gather-auth-go
