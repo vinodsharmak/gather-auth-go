@@ -1,114 +1,127 @@
 package auth
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func TestLogin(t *testing.T) {
-	x := email{"check123@gmail.com"}
-	requestByte, _ := json.Marshal(x)
-	requestReader := bytes.NewReader(requestByte)
-	req, err := http.NewRequest("POST", "/api/v1/token/", requestReader)
+func TestLoginSuccess(t *testing.T) {
+	expectedEmail := "demo@gather.network"
+	expectedStatusCode := http.StatusOK
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var data email
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		if data.Email == expectedEmail {
+			w.WriteHeader(http.StatusOK)
+			io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": false}`)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+			io.WriteString(w, `{"detail": "Invalid Email!"}`)
+		}
+	}))
+	defer server.Close()
+
+	response, err := Login("demo@gather.network", server.URL)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("Unexpected error on request: %s", err)
+	}
+	if response.StatusCode != expectedStatusCode {
+		t.Errorf("Unexpected StatusCode on request, expected: %v, got: %v", expectedStatusCode, response.StatusCode)
 	}
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(loginHandler)
+}
+func TestLoginFail(t *testing.T) {
+	expectedInvalidEmail := "invalid@gather.network"
+	expectedStatusCode := http.StatusNotFound
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var data email
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		if data.Email == expectedInvalidEmail {
+			w.WriteHeader(http.StatusNotFound)
+			io.WriteString(w, `{"detail": "Invalid email id."}`)
+		} else {
+			w.WriteHeader(http.StatusOK)
+		}
+	}))
+	defer server.Close()
 
-	handler.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
+	response, err := Login("invalid@gather.network", server.URL)
+	if err != nil {
+		t.Errorf("Unexpected error on request: %s", err)
+	}
+	if response.StatusCode != expectedStatusCode {
+		t.Errorf("Unexpected StatusCode on request, expected: %v, got: %v", expectedStatusCode, response.StatusCode)
 	}
 
-	expected := `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": false}`
-	if rr.Body.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
 }
 
-func TestLoginOTP(t *testing.T) {
-	x := emailAndCode{"otp123@gmail.com", "otp123"}
-	requestByte, _ := json.Marshal(x)
-	requestReader := bytes.NewReader(requestByte)
-	req, err := http.NewRequest("POST", "/api/v1/token/code/", requestReader)
+func TestLoginOTPSuccess(t *testing.T) {
+	expectedEmail := "demo@gather.network"
+	expectedCode := "abc123"
+	expectedStatusCode := http.StatusOK
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var data emailAndCode
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		if data.Email == expectedEmail && data.Code == expectedCode {
+			w.WriteHeader(http.StatusOK)
+			io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": true}`)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+			io.WriteString(w, `{"detail": "Invalid Credentials!"}`)
+		}
+	}))
+	defer server.Close()
+
+	response, err := LoginOTP("demo@gather.network", "abc123", server.URL)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("Unexpected error on request: %s", err)
+	}
+	if response.StatusCode != expectedStatusCode {
+		t.Errorf("Unexpected StatusCode on request, expected: %v, got: %v", expectedStatusCode, response.StatusCode)
 	}
 
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(loginOTPHandler)
-
-	handler.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-
-	expected := `{"refresh": "some_refresh_value",
-		"access": "some_access_value",
-		"department": "some_department_name",
-		"smtp_enabled": true}`
-	if rr.Body.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
 }
 
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-	bodyBytes, err := ioutil.ReadAll(r.Body)
+func TestLoginOTPFail(t *testing.T) {
+	expectedEmail := "demo@gather.network"
+	expectedInvalidCode := "invalidCode"
+	expectedStatusCode := http.StatusNotFound
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var data emailAndCode
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		if data.Email == expectedEmail && data.Code == expectedInvalidCode {
+			w.WriteHeader(http.StatusNotFound)
+			io.WriteString(w, `{"detail": "Invalid Credentials!"}`)
+		} else {
+			w.WriteHeader(http.StatusOK)
+		}
+	}))
+	defer server.Close()
+
+	response, err := LoginOTP("demo@gather.network", "invalidCode", server.URL)
 	if err != nil {
-		log.Fatalf(err.Error())
+		t.Errorf("Unexpected error on request: %s", err)
 	}
-	var req map[string]interface{}
-	err = json.Unmarshal([]byte(bodyBytes), &req)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	if req["email"] == "check123@gmail.com" {
-		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": false}`)
-	} else {
-		w.WriteHeader(http.StatusUnauthorized)
-		io.WriteString(w, `{"detail": "No active account found with the given credentials"}`)
+	if response.StatusCode != expectedStatusCode {
+		t.Errorf("Unexpected StatusCode on request, expected: %v, got: %v", expectedStatusCode, response.StatusCode)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-}
-
-func loginOTPHandler(w http.ResponseWriter, r *http.Request) {
-	bodyBytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	var req map[string]interface{}
-	err = json.Unmarshal([]byte(bodyBytes), &req)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	if req["email"] == "otp123@gmail.com" && req["code"] == "otp123" {
-		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, `{"refresh": "some_refresh_value",
-		"access": "some_access_value",
-		"department": "some_department_name",
-		"smtp_enabled": true}`)
-	} else {
-		w.WriteHeader(http.StatusNotFound)
-		io.WriteString(w, `{"detail": "Not found."}`)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
 }
 func TestVerifyAccessToken(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
