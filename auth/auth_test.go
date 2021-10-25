@@ -32,8 +32,8 @@ func TestLoginSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != expectedStatusCode {
-		t.Errorf("Unexpected StatusCode on request, expected: %v, got: %v", expectedStatusCode, response.StatusCode)
+	if response.StatusCode != expectedStatusCode || response.Access != "some_access_value" || response.Refresh != "some_refresh_value" {
+		t.Errorf("Unxpected response values: %v, %v, %v", response.StatusCode, response.Access, response.Refresh)
 	}
 
 }
@@ -59,8 +59,8 @@ func TestLoginFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != expectedStatusCode {
-		t.Errorf("Unexpected StatusCode on request, expected: %v, got: %v", expectedStatusCode, response.StatusCode)
+	if response.StatusCode != expectedStatusCode || response.ErrorDetail != "Invalid email id." {
+		t.Errorf("Unxpected response values: %v, %v", response.StatusCode, response.ErrorDetail)
 	}
 
 }
@@ -89,8 +89,8 @@ func TestLoginOTPSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != expectedStatusCode {
-		t.Errorf("Unexpected StatusCode on request, expected: %v, got: %v", expectedStatusCode, response.StatusCode)
+	if response.StatusCode != expectedStatusCode || response.Access != "some_access_value" || response.Refresh != "some_refresh_value" {
+		t.Errorf("Unxpected response values: %v, %v, %v", response.StatusCode, response.Access, response.Refresh)
 	}
 
 }
@@ -118,29 +118,21 @@ func TestLoginOTPFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != expectedStatusCode {
-		t.Errorf("Unexpected StatusCode on request, expected: %v, got: %v", expectedStatusCode, response.StatusCode)
+	if response.StatusCode != expectedStatusCode || response.ErrorDetail != "Invalid Credentials!" {
+		t.Errorf("Unxpected response values: %v, %v", response.StatusCode, response.ErrorDetail)
 	}
 
 }
-func TestVerifyAccessToken(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	defer server.Close()
-
-	resp := &Response{
-		Refresh: "some_refresh",
-		Access:  "some_access",
-	}
-
-	_, err := resp.VerifyAccessToken(server.URL)
-	if err != nil {
-		t.Errorf("Unexpected error on request: %s", err)
-	}
-}
-
-func TestRefreshAccessToken(t *testing.T) {
+func TestVerifyAccessTokenSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, `{"access":"some_access_token","refresh":"some_refresh_token"}`)
+		var response Response
+		err := json.NewDecoder(r.Body).Decode(&response)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		if response.Access == "some_access" {
+			w.WriteHeader(http.StatusOK)
+		}
 	}))
 	defer server.Close()
 
@@ -148,11 +140,85 @@ func TestRefreshAccessToken(t *testing.T) {
 		Refresh: "some_refresh",
 		Access:  "some_access",
 	}
+
+	response, err := resp.VerifyAccessToken(server.URL)
+	if err != nil {
+		t.Errorf("Unexpected error on request: %s", err)
+	}
+	if !response {
+		t.Errorf("Expected true on request, but got %v", response)
+	}
+}
+func TestVerifyAccessTokenFail(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var accessToken verifyAccessToken
+		err := json.NewDecoder(r.Body).Decode(&accessToken)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		if accessToken.Token == "expired_access" {
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	resp := &Response{Access: "expired_access"}
+
+	response, err := resp.VerifyAccessToken(server.URL)
+	if err != nil {
+		t.Errorf("Unexpected error on request: %s", err)
+	}
+	if response {
+		t.Errorf("Expected false on request, but got %v", response)
+	}
+}
+
+func TestRefreshAccessTokenSuccess(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var refreshToken refreshAccessToken
+		err := json.NewDecoder(r.Body).Decode(&refreshToken)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		if refreshToken.Refresh == "valid_refresh" {
+			w.WriteHeader(http.StatusOK)
+			io.WriteString(w, `{"access":"new_access_token","refresh":"new_refresh_token"}`)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	resp := &Response{Refresh: "valid_refresh"}
 	response, err := resp.RefreshAccessToken(server.URL)
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.Access != "some_access_token" {
-		t.Errorf("Expected access token: some_access_token, but got access token: %s", response.Access)
+	if response.StatusCode != http.StatusOK || response.Access != "new_access_token" || response.Refresh != "new_refresh_token" {
+		t.Errorf("Unxpected response values: %v, %v, %v", response.StatusCode, response.Access, response.Refresh)
+	}
+}
+
+func TestRefreshAccessTokenFail(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var refreshToken refreshAccessToken
+		err := json.NewDecoder(r.Body).Decode(&refreshToken)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		if refreshToken.Refresh == "invalid_refresh" {
+			w.WriteHeader(http.StatusNotFound)
+			io.WriteString(w, `{"detail":"Token_is_Invalid"}`)
+		}
+	}))
+	defer server.Close()
+
+	resp := &Response{Refresh: "invalid_refresh"}
+	response, err := resp.RefreshAccessToken(server.URL)
+	if err != nil {
+		t.Errorf("Unexpected error on request: %s", err)
+	}
+	if response.StatusCode != http.StatusNotFound || response.ErrorDetail != "Token_is_Invalid" {
+		t.Errorf("Unxpected response values: %v, %v", response.StatusCode, response.ErrorDetail)
 	}
 }
