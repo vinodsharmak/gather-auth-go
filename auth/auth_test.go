@@ -19,7 +19,7 @@ func TestLoginSuccess(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		if data.Email == expectedEmail {
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(expectedStatusCode)
 			io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": false}`)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
@@ -32,8 +32,14 @@ func TestLoginSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != expectedStatusCode || response.Access != "some_access_value" || response.Refresh != "some_refresh_value" {
-		t.Errorf("Unxpected response values: %v, %v, %v", response.StatusCode, response.Access, response.Refresh)
+	if response.StatusCode != expectedStatusCode {
+		t.Errorf("Unxpected response! Expected StatusCode: values: %v, but got StatusCode: %v", expectedStatusCode, response.StatusCode)
+	}
+	if response.Access != "some_access_value" {
+		t.Errorf("Unexpected response! Expeced access:some_access_value but got access:%v", response.Access)
+	}
+	if response.Refresh != "some_refresh_value" {
+		t.Errorf("Unexpected response! Expeced refresh:some_refresh_value but got refresh:%v", response.Refresh)
 	}
 
 }
@@ -47,7 +53,7 @@ func TestLoginFail(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		if data.Email == expectedInvalidEmail {
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(expectedStatusCode)
 			io.WriteString(w, `{"detail": "Invalid email id."}`)
 		} else {
 			w.WriteHeader(http.StatusOK)
@@ -59,8 +65,11 @@ func TestLoginFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != expectedStatusCode || response.ErrorDetail != "Invalid email id." {
-		t.Errorf("Unxpected response values: %v, %v", response.StatusCode, response.ErrorDetail)
+	if response.StatusCode != expectedStatusCode {
+		t.Errorf("Unxpected StatusCode, Expected: %v, but got: %v", expectedStatusCode, response.StatusCode)
+	}
+	if response.ErrorDetail != "Invalid email id." {
+		t.Errorf("Unexpected ErrorMessage. Expected ErrorDetail: Invalid email id., but got %v", response.ErrorDetail)
 	}
 
 }
@@ -76,7 +85,7 @@ func TestLoginOTPSuccess(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		if data.Email == expectedEmail && data.Code == expectedCode {
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(expectedStatusCode)
 			io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": true}`)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
@@ -89,8 +98,14 @@ func TestLoginOTPSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != expectedStatusCode || response.Access != "some_access_value" || response.Refresh != "some_refresh_value" {
-		t.Errorf("Unxpected response values: %v, %v, %v", response.StatusCode, response.Access, response.Refresh)
+	if response.StatusCode != expectedStatusCode {
+		t.Errorf("Unxpected response! Expected StatusCode: values: %v, but got StatusCode: %v", expectedStatusCode, response.StatusCode)
+	}
+	if response.Access != "some_access_value" {
+		t.Errorf("Unexpected response! Expeced access:some_access_value but got access:%v", response.Access)
+	}
+	if response.Refresh != "some_refresh_value" {
+		t.Errorf("Unexpected response! Expeced refresh:some_refresh_value but got refresh:%v", response.Refresh)
 	}
 
 }
@@ -106,7 +121,7 @@ func TestLoginOTPFail(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		if data.Email == expectedEmail && data.Code == expectedInvalidCode {
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(expectedStatusCode)
 			io.WriteString(w, `{"detail": "Invalid Credentials!"}`)
 		} else {
 			w.WriteHeader(http.StatusOK)
@@ -118,8 +133,11 @@ func TestLoginOTPFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != expectedStatusCode || response.ErrorDetail != "Invalid Credentials!" {
-		t.Errorf("Unxpected response values: %v, %v", response.StatusCode, response.ErrorDetail)
+	if response.StatusCode != expectedStatusCode {
+		t.Errorf("Unxpected StatusCode, Expected: %v, but got: %v", expectedStatusCode, response.StatusCode)
+	}
+	if response.ErrorDetail != "Invalid Credentials!" {
+		t.Errorf("Unexpected ErrorMessage. Expected ErrorDetail: Invalid Credentials!, but got %v", response.ErrorDetail)
 	}
 
 }
@@ -174,6 +192,7 @@ func TestVerifyAccessTokenFail(t *testing.T) {
 }
 
 func TestRefreshAccessTokenSuccess(t *testing.T) {
+	expectedStatusCode := http.StatusOK
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var refreshToken refreshAccessToken
 		err := json.NewDecoder(r.Body).Decode(&refreshToken)
@@ -181,7 +200,7 @@ func TestRefreshAccessTokenSuccess(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		if refreshToken.Refresh == "valid_refresh" {
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(expectedStatusCode)
 			io.WriteString(w, `{"access":"new_access_token","refresh":"new_refresh_token"}`)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
@@ -194,12 +213,19 @@ func TestRefreshAccessTokenSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != http.StatusOK || response.Access != "new_access_token" || response.Refresh != "new_refresh_token" {
-		t.Errorf("Unxpected response values: %v, %v, %v", response.StatusCode, response.Access, response.Refresh)
+	if response.StatusCode != expectedStatusCode {
+		t.Errorf("Unxpected response! Expected StatusCode: values: %v, but got StatusCode: %v", expectedStatusCode, response.StatusCode)
+	}
+	if response.Access != "new_access_token" {
+		t.Errorf("Unexpected response! Expeced access:new_access_token but got access:%v", response.Access)
+	}
+	if response.Refresh != "new_refresh_token" {
+		t.Errorf("Unexpected response! Expeced refresh:new_refresh_token but got refresh:%v", response.Refresh)
 	}
 }
 
 func TestRefreshAccessTokenFail(t *testing.T) {
+	expectedStatusCode := http.StatusNotFound
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var refreshToken refreshAccessToken
 		err := json.NewDecoder(r.Body).Decode(&refreshToken)
@@ -207,7 +233,7 @@ func TestRefreshAccessTokenFail(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		if refreshToken.Refresh == "invalid_refresh" {
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(expectedStatusCode)
 			io.WriteString(w, `{"detail":"Token_is_Invalid"}`)
 		}
 	}))
@@ -218,7 +244,10 @@ func TestRefreshAccessTokenFail(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != http.StatusNotFound || response.ErrorDetail != "Token_is_Invalid" {
-		t.Errorf("Unxpected response values: %v, %v", response.StatusCode, response.ErrorDetail)
+	if response.StatusCode != expectedStatusCode {
+		t.Errorf("Unxpected StatusCode, Expected: %v, but got: %v", expectedStatusCode, response.StatusCode)
+	}
+	if response.ErrorDetail != "Token_is_Invalid" {
+		t.Errorf("Unexpected ErrorMessage. Expected ErrorDetail: Token_is_Invalid, but got %v", response.ErrorDetail)
 	}
 }
