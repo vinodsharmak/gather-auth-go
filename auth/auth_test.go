@@ -127,12 +127,12 @@ func TestVerifyAccessToken(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer server.Close()
 
-	cluster := &Response{
+	resp := &Response{
 		Refresh: "some_refresh",
 		Access:  "some_access",
 	}
 
-	_, err := cluster.VerifyAccessToken(server.URL)
+	_, err := resp.VerifyAccessToken(server.URL)
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
@@ -144,11 +144,11 @@ func TestRefreshAccessToken(t *testing.T) {
 	}))
 	defer server.Close()
 
-	cluster := &Response{
+	resp := &Response{
 		Refresh: "some_refresh",
 		Access:  "some_access",
 	}
-	response, err := cluster.RefreshAccessToken(server.URL)
+	response, err := resp.RefreshAccessToken(server.URL)
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
