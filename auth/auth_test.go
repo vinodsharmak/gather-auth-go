@@ -10,7 +10,6 @@ import (
 )
 
 func TestLoginSuccess(t *testing.T) {
-	expectedEmail := "demo@gather.network"
 	expectedStatusCode := http.StatusOK
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var data email
@@ -18,13 +17,9 @@ func TestLoginSuccess(t *testing.T) {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		if data.Email == expectedEmail {
-			w.WriteHeader(expectedStatusCode)
-			io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": false}`)
-		} else {
-			w.WriteHeader(http.StatusNotFound)
-			io.WriteString(w, `{"detail": "Invalid Email!"}`)
-		}
+		w.WriteHeader(expectedStatusCode)
+		io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": false}`)
+
 	}))
 	defer server.Close()
 
@@ -44,7 +39,6 @@ func TestLoginSuccess(t *testing.T) {
 
 }
 func TestLoginFail(t *testing.T) {
-	expectedInvalidEmail := "invalid@gather.network"
 	expectedStatusCode := http.StatusNotFound
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var data email
@@ -52,12 +46,9 @@ func TestLoginFail(t *testing.T) {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		if data.Email == expectedInvalidEmail {
-			w.WriteHeader(expectedStatusCode)
-			io.WriteString(w, `{"detail": "Invalid email id."}`)
-		} else {
-			w.WriteHeader(http.StatusOK)
-		}
+
+		w.WriteHeader(expectedStatusCode)
+		io.WriteString(w, `{"detail": "Invalid email id."}`)
 	}))
 	defer server.Close()
 
@@ -75,8 +66,6 @@ func TestLoginFail(t *testing.T) {
 }
 
 func TestLoginOTPSuccess(t *testing.T) {
-	expectedEmail := "demo@gather.network"
-	expectedCode := "abc123"
 	expectedStatusCode := http.StatusOK
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var data emailAndCode
@@ -84,13 +73,8 @@ func TestLoginOTPSuccess(t *testing.T) {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		if data.Email == expectedEmail && data.Code == expectedCode {
-			w.WriteHeader(expectedStatusCode)
-			io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": true}`)
-		} else {
-			w.WriteHeader(http.StatusNotFound)
-			io.WriteString(w, `{"detail": "Invalid Credentials!"}`)
-		}
+		w.WriteHeader(expectedStatusCode)
+		io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": true}`)
 	}))
 	defer server.Close()
 
@@ -111,8 +95,6 @@ func TestLoginOTPSuccess(t *testing.T) {
 }
 
 func TestLoginOTPFail(t *testing.T) {
-	expectedEmail := "demo@gather.network"
-	expectedInvalidCode := "invalidCode"
 	expectedStatusCode := http.StatusNotFound
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var data emailAndCode
@@ -120,12 +102,9 @@ func TestLoginOTPFail(t *testing.T) {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		if data.Email == expectedEmail && data.Code == expectedInvalidCode {
-			w.WriteHeader(expectedStatusCode)
-			io.WriteString(w, `{"detail": "Invalid Credentials!"}`)
-		} else {
-			w.WriteHeader(http.StatusOK)
-		}
+		w.WriteHeader(expectedStatusCode)
+		io.WriteString(w, `{"detail": "Invalid Credentials!"}`)
+
 	}))
 	defer server.Close()
 
@@ -147,9 +126,6 @@ func TestVerifyAccessTokenSuccess(t *testing.T) {
 		err := json.NewDecoder(r.Body).Decode(&response)
 		if err != nil {
 			log.Fatalf(err.Error())
-		}
-		if response.Access == "some_access" {
-			w.WriteHeader(http.StatusOK)
 		}
 	}))
 	defer server.Close()
@@ -174,9 +150,7 @@ func TestVerifyAccessTokenFail(t *testing.T) {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		if accessToken.Token == "expired_access" {
-			w.WriteHeader(http.StatusNotFound)
-		}
+		w.WriteHeader(http.StatusNotFound)
 	}))
 	defer server.Close()
 
@@ -199,12 +173,8 @@ func TestRefreshAccessTokenSuccess(t *testing.T) {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		if refreshToken.Refresh == "valid_refresh" {
-			w.WriteHeader(expectedStatusCode)
-			io.WriteString(w, `{"access":"new_access_token","refresh":"new_refresh_token"}`)
-		} else {
-			w.WriteHeader(http.StatusNotFound)
-		}
+		w.WriteHeader(expectedStatusCode)
+		io.WriteString(w, `{"access":"new_access_token","refresh":"new_refresh_token"}`)
 	}))
 	defer server.Close()
 
@@ -232,10 +202,8 @@ func TestRefreshAccessTokenFail(t *testing.T) {
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		if refreshToken.Refresh == "invalid_refresh" {
-			w.WriteHeader(expectedStatusCode)
-			io.WriteString(w, `{"detail":"Token_is_Invalid"}`)
-		}
+		w.WriteHeader(expectedStatusCode)
+		io.WriteString(w, `{"detail":"Token_is_Invalid"}`)
 	}))
 	defer server.Close()
 
