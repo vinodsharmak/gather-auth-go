@@ -3,6 +3,8 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -98,4 +100,27 @@ func (r *Response) RefreshAccessToken(url string) (*Response, error) {
 		return r, err
 	}
 	return r, nil
+}
+
+func (r *Response) VerifyJWTToken(url string) (bool, *Response, error) {
+	isValid, err := r.VerifyAccessToken(url)
+	if err != nil {
+		return false, r, err
+	}
+	fmt.Println("Status-1: ", r.StatusCode)
+	if !isValid {
+		response, err := r.RefreshAccessToken(url)
+		if err != nil {
+			return false, response, err
+		}
+		if response.StatusCode != http.StatusOK {
+			if response.StatusCode == http.StatusUnauthorized {
+				return false, response, errors.New("invalid/expired token")
+			}
+			return false, response, errors.New("unexpected error")
+		}
+		r = response
+		return true, r, nil
+	}
+	return true, r, nil
 }

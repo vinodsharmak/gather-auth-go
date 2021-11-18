@@ -219,3 +219,27 @@ func TestRefreshAccessTokenFail(t *testing.T) {
 		t.Errorf("Unexpected ErrorMessage. Expected ErrorDetail: Token_is_Invalid, but got %v", response.ErrorDetail)
 	}
 }
+
+func TestVerifyJWTToken(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var response Response
+		err := json.NewDecoder(r.Body).Decode(&response)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}))
+	defer server.Close()
+
+	resp := &Response{
+		Refresh:    "some_refresh",
+		Access:     "some_access",
+		StatusCode: http.StatusOK,
+	}
+	_, response, err := resp.VerifyJWTToken(server.URL)
+	if err != nil {
+		t.Errorf("Unexpected error on request: %s", err)
+	}
+	if response.StatusCode != http.StatusOK {
+		t.Errorf("Unexpected StatusCode: %v", response.StatusCode)
+	}
+}
