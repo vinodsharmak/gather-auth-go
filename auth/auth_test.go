@@ -220,7 +220,7 @@ func TestRefreshAccessTokenFail(t *testing.T) {
 	}
 }
 
-func TestVerifyAndRefreshJWTTokenStatusOK(t *testing.T) {
+func TestVerifyAndRefreshAccessTokenStatusOK(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var response Response
 		err := json.NewDecoder(r.Body).Decode(&response)
@@ -235,7 +235,7 @@ func TestVerifyAndRefreshJWTTokenStatusOK(t *testing.T) {
 		Access:     "valid_access",
 		StatusCode: http.StatusOK,
 	}
-	err := resp.VerifyAndRefreshJWTToken(server.URL)
+	err := resp.VerifyAndRefreshAccessToken(server.URL)
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
@@ -250,7 +250,7 @@ func TestVerifyAndRefreshJWTTokenStatusOK(t *testing.T) {
 	}
 }
 
-func TestVerifyAndRefreshJWTTokenStatusUnauthorized(t *testing.T) {
+func TestVerifyAndRefreshAccessTokenStatusUnauthorized(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var response Response
 		err := json.NewDecoder(r.Body).Decode(&response)
@@ -266,7 +266,7 @@ func TestVerifyAndRefreshJWTTokenStatusUnauthorized(t *testing.T) {
 		Access:     "expired_access",
 		StatusCode: http.StatusOK,
 	}
-	err := resp.VerifyAndRefreshJWTToken(server.URL)
+	err := resp.VerifyAndRefreshAccessToken(server.URL)
 	if err == nil {
 		t.Errorf("Expected error on request.")
 	}
@@ -281,7 +281,7 @@ func TestVerifyAndRefreshJWTTokenStatusUnauthorized(t *testing.T) {
 	}
 }
 
-func TestVerifyAndRefreshJWTTokenError(t *testing.T) {
+func TestVerifyAndRefreshAccessTokenError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var response Response
 		err := json.NewDecoder(r.Body).Decode(&response)
@@ -297,7 +297,7 @@ func TestVerifyAndRefreshJWTTokenError(t *testing.T) {
 		Access:     "",
 		StatusCode: http.StatusOK,
 	}
-	err := resp.VerifyAndRefreshJWTToken(server.URL)
+	err := resp.VerifyAndRefreshAccessToken(server.URL)
 	if err == nil {
 		t.Errorf("Expected error on request.")
 	}

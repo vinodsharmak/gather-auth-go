@@ -104,7 +104,7 @@ func (r *Response) RefreshAccessToken(url string) error {
 It uses VerifyAccessToken and RefreshAccessToken functions to verify if the existing access token is expired.
 And tries to refresh it using the refresh token. It throws error in case token is expired and cannot be refreshed.
 */
-func (r *Response) VerifyAndRefreshJWTToken(url string) error {
+func (r *Response) VerifyAndRefreshAccessToken(url string) error {
 	isValid, err := r.VerifyAccessToken(url)
 	if err != nil {
 		return err
