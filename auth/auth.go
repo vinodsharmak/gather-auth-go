@@ -70,7 +70,6 @@ func (r *Response) VerifyAccessToken(url string) (bool, error) {
 		return false, err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode == http.StatusOK {
 		return true, nil
 	} else {
@@ -82,48 +81,46 @@ func (r *Response) VerifyAccessToken(url string) (bool, error) {
 /* RefreshAccessToken takes controller url as a prameter and can be called as a response function.
 It refresh the access token using the existing refresh token
 */
-func (r *Response) RefreshAccessToken(url string) (*Response, error) {
+func (r *Response) RefreshAccessToken(url string) error {
 	jsonReq, err := json.Marshal(refreshAccessToken{r.Refresh})
 	if err != nil {
-		return r, err
+		return err
 	}
 
 	resp, err := http.Post(url+"/api/v1/token/refresh/", contentType, bytes.NewBuffer(jsonReq))
 	if err != nil {
-		return r, err
+		return err
 	}
 	defer resp.Body.Close()
 	r.StatusCode = resp.StatusCode
 	err = json.NewDecoder(resp.Body).Decode(&r)
 	if err != nil {
-		return r, err
+		return err
 	}
-	return r, nil
+	return nil
 }
 
 /* VerifyAndRefreshJWTToken takes controller url as a prameter and can be called as a response function.
 It uses VerifyAccessToken and RefreshAccessToken functions to verify if the existing access token is expired.
 And tries to refresh it using the refresh token. It throws error in case token is expired and cannot be refreshed.
 */
-func (r *Response) VerifyAndRefreshJWTToken(url string) (*Response, error) {
+func (r *Response) VerifyAndRefreshJWTToken(url string) error {
 	isValid, err := r.VerifyAccessToken(url)
 	if err != nil {
-		return r, err
+		return err
 	}
-
 	if !isValid {
-		response, err := r.RefreshAccessToken(url)
+		err := r.RefreshAccessToken(url)
 		if err != nil {
-			return response, err
+			return err
 		}
-		if response.StatusCode != http.StatusOK {
-			if response.StatusCode == http.StatusUnauthorized {
-				return response, errors.New("invalid/expired token")
+		if r.StatusCode != http.StatusOK {
+			if r.StatusCode == http.StatusUnauthorized {
+				return errors.New("invalid/expired token")
 			}
-			return response, errors.New("unexpected error")
+			return errors.New("unexpected error")
 		}
-		r = response
-		return r, nil
+		return nil
 	}
-	return r, nil
+	return nil
 }

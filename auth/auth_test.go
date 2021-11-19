@@ -179,18 +179,18 @@ func TestRefreshAccessTokenSuccess(t *testing.T) {
 	defer server.Close()
 
 	resp := &Response{Refresh: "valid_refresh"}
-	response, err := resp.RefreshAccessToken(server.URL)
+	err := resp.RefreshAccessToken(server.URL)
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != expectedStatusCode {
-		t.Errorf("Unxpected response! Expected StatusCode: values: %v, but got StatusCode: %v", expectedStatusCode, response.StatusCode)
+	if resp.StatusCode != expectedStatusCode {
+		t.Errorf("Unxpected response! Expected StatusCode: values: %v, but got StatusCode: %v", expectedStatusCode, resp.StatusCode)
 	}
-	if response.Access != "new_access_token" {
-		t.Errorf("Unexpected response! Expeced access:new_access_token but got access:%v", response.Access)
+	if resp.Access != "new_access_token" {
+		t.Errorf("Unexpected response! Expeced access:new_access_token but got access:%v", resp.Access)
 	}
-	if response.Refresh != "new_refresh_token" {
-		t.Errorf("Unexpected response! Expeced refresh:new_refresh_token but got refresh:%v", response.Refresh)
+	if resp.Refresh != "new_refresh_token" {
+		t.Errorf("Unexpected response! Expeced refresh:new_refresh_token but got refresh:%v", resp.Refresh)
 	}
 }
 
@@ -208,15 +208,15 @@ func TestRefreshAccessTokenFail(t *testing.T) {
 	defer server.Close()
 
 	resp := &Response{Refresh: "invalid_refresh"}
-	response, err := resp.RefreshAccessToken(server.URL)
+	err := resp.RefreshAccessToken(server.URL)
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != expectedStatusCode {
-		t.Errorf("Unxpected StatusCode, Expected: %v, but got: %v", expectedStatusCode, response.StatusCode)
+	if resp.StatusCode != expectedStatusCode {
+		t.Errorf("Unxpected StatusCode, Expected: %v, but got: %v", expectedStatusCode, resp.StatusCode)
 	}
-	if response.ErrorDetail != "Token_is_Invalid" {
-		t.Errorf("Unexpected ErrorMessage. Expected ErrorDetail: Token_is_Invalid, but got %v", response.ErrorDetail)
+	if resp.ErrorDetail != "Token_is_Invalid" {
+		t.Errorf("Unexpected ErrorMessage. Expected ErrorDetail: Token_is_Invalid, but got %v", resp.ErrorDetail)
 	}
 }
 
@@ -231,16 +231,22 @@ func TestVerifyAndRefreshJWTTokenStatusOK(t *testing.T) {
 	defer server.Close()
 
 	resp := &Response{
-		Refresh:    "some_refresh",
-		Access:     "some_access",
+		Refresh:    "valid_refresh",
+		Access:     "valid_access",
 		StatusCode: http.StatusOK,
 	}
-	response, err := resp.VerifyAndRefreshJWTToken(server.URL)
+	err := resp.VerifyAndRefreshJWTToken(server.URL)
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
-	if response.StatusCode != http.StatusOK {
-		t.Errorf("Unexpected StatusCode: %v", response.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Unexpected StatusCode: %v", resp.StatusCode)
+	}
+	if resp.Access != "valid_access" {
+		t.Errorf("Unexpected response: %v", resp.Access)
+	}
+	if resp.Refresh != "valid_refresh" {
+		t.Errorf("Unexpected response: %v", resp.Refresh)
 	}
 }
 
@@ -257,15 +263,21 @@ func TestVerifyAndRefreshJWTTokenStatusUnauthorized(t *testing.T) {
 
 	resp := &Response{
 		Refresh:    "expired_refresh",
-		Access:     "some_access",
+		Access:     "expired_access",
 		StatusCode: http.StatusOK,
 	}
-	response, err := resp.VerifyAndRefreshJWTToken(server.URL)
+	err := resp.VerifyAndRefreshJWTToken(server.URL)
 	if err == nil {
 		t.Errorf("Expected error on request.")
 	}
-	if response.StatusCode != http.StatusUnauthorized {
-		t.Errorf("Unexpected StatusCode: %v", response.StatusCode)
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Errorf("Unexpected StatusCode: %v", resp.StatusCode)
+	}
+	if resp.Access != "expired_access" {
+		t.Errorf("Unexpected response: %v", resp.Access)
+	}
+	if resp.Refresh != "expired_refresh" {
+		t.Errorf("Unexpected response: %v", resp.Refresh)
 	}
 }
 
@@ -285,11 +297,17 @@ func TestVerifyAndRefreshJWTTokenError(t *testing.T) {
 		Access:     "",
 		StatusCode: http.StatusOK,
 	}
-	response, err := resp.VerifyAndRefreshJWTToken(server.URL)
+	err := resp.VerifyAndRefreshJWTToken(server.URL)
 	if err == nil {
 		t.Errorf("Expected error on request.")
 	}
-	if response.StatusCode == http.StatusOK {
-		t.Errorf("Unexpected StatusCode: %v", response.StatusCode)
+	if resp.StatusCode == http.StatusOK {
+		t.Errorf("Unexpected StatusCode: %v", resp.StatusCode)
+	}
+	if resp.Access != "" {
+		t.Errorf("Unexpected response: %v", resp.Access)
+	}
+	if resp.Refresh != "" {
+		t.Errorf("Unexpected response: %v", resp.Refresh)
 	}
 }
