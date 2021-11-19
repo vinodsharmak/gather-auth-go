@@ -25,10 +25,12 @@ func Login(anEmail string, url string) (Response, error) {
 
 	var data Response
 	err = json.NewDecoder(resp.Body).Decode(&data)
-	data.StatusCode = resp.StatusCode
 	if err != nil {
 		return data, err
 	}
+
+	data.StatusCode = resp.StatusCode
+
 	return data, nil
 }
 
@@ -49,10 +51,12 @@ func LoginOTP(email string, code string, url string) (Response, error) {
 
 	var data Response
 	err = json.NewDecoder(resp.Body).Decode(&data)
-	data.StatusCode = resp.StatusCode
 	if err != nil {
 		return data, err
 	}
+
+	data.StatusCode = resp.StatusCode
+
 	return data, nil
 }
 
@@ -70,11 +74,12 @@ func (r *Response) VerifyAccessToken(url string) (bool, error) {
 		return false, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusOK {
-		return true, nil
-	} else {
+
+	if resp.StatusCode != http.StatusOK {
 		return false, nil
 	}
+
+	return true, nil
 
 }
 
@@ -92,11 +97,14 @@ func (r *Response) RefreshAccessToken(url string) error {
 		return err
 	}
 	defer resp.Body.Close()
+
 	r.StatusCode = resp.StatusCode
+
 	err = json.NewDecoder(resp.Body).Decode(&r)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -109,18 +117,20 @@ func (r *Response) VerifyAndRefreshAccessToken(url string) error {
 	if err != nil {
 		return err
 	}
+
 	if !isValid {
 		err := r.RefreshAccessToken(url)
 		if err != nil {
 			return err
 		}
+
 		if r.StatusCode != http.StatusOK {
 			if r.StatusCode == http.StatusUnauthorized {
 				return errors.New("invalid/expired token")
 			}
 			return errors.New("unexpected error")
 		}
-		return nil
 	}
+
 	return nil
 }

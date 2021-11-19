@@ -293,8 +293,8 @@ func TestVerifyAndRefreshAccessTokenError(t *testing.T) {
 	defer server.Close()
 
 	resp := &Response{
-		Refresh:    "",
-		Access:     "",
+		Refresh:    "expired_refresh",
+		Access:     "expired_access",
 		StatusCode: http.StatusOK,
 	}
 	err := resp.VerifyAndRefreshAccessToken(server.URL)
@@ -304,10 +304,10 @@ func TestVerifyAndRefreshAccessTokenError(t *testing.T) {
 	if resp.StatusCode == http.StatusOK {
 		t.Errorf("Unexpected StatusCode: %v", resp.StatusCode)
 	}
-	if resp.Access != "" {
+	if resp.Access != "expired_access" {
 		t.Errorf("Unexpected response: %v", resp.Access)
 	}
-	if resp.Refresh != "" {
+	if resp.Refresh != "expired_refresh" {
 		t.Errorf("Unexpected response: %v", resp.Refresh)
 	}
 }
