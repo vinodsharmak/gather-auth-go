@@ -220,7 +220,7 @@ func TestRefreshAccessTokenFail(t *testing.T) {
 	}
 }
 
-func TestVerifyJWTToken(t *testing.T) {
+func TestVerifyAndRefreshJWTTokenStatusOK(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var response Response
 		err := json.NewDecoder(r.Body).Decode(&response)
@@ -235,11 +235,61 @@ func TestVerifyJWTToken(t *testing.T) {
 		Access:     "some_access",
 		StatusCode: http.StatusOK,
 	}
-	_, response, err := resp.VerifyJWTToken(server.URL)
+	response, err := resp.VerifyAndRefreshJWTToken(server.URL)
 	if err != nil {
 		t.Errorf("Unexpected error on request: %s", err)
 	}
 	if response.StatusCode != http.StatusOK {
+		t.Errorf("Unexpected StatusCode: %v", response.StatusCode)
+	}
+}
+
+func TestVerifyAndRefreshJWTTokenStatusUnauthorized(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var response Response
+		err := json.NewDecoder(r.Body).Decode(&response)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer server.Close()
+
+	resp := &Response{
+		Refresh:    "expired_refresh",
+		Access:     "some_access",
+		StatusCode: http.StatusOK,
+	}
+	response, err := resp.VerifyAndRefreshJWTToken(server.URL)
+	if err == nil {
+		t.Errorf("Expected error on request.")
+	}
+	if response.StatusCode != http.StatusUnauthorized {
+		t.Errorf("Unexpected StatusCode: %v", response.StatusCode)
+	}
+}
+
+func TestVerifyAndRefreshJWTTokenError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var response Response
+		err := json.NewDecoder(r.Body).Decode(&response)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer server.Close()
+
+	resp := &Response{
+		Refresh:    "",
+		Access:     "",
+		StatusCode: http.StatusOK,
+	}
+	response, err := resp.VerifyAndRefreshJWTToken(server.URL)
+	if err == nil {
+		t.Errorf("Expected error on request.")
+	}
+	if response.StatusCode == http.StatusOK {
 		t.Errorf("Unexpected StatusCode: %v", response.StatusCode)
 	}
 }
