@@ -101,6 +101,10 @@ func (r *Response) RefreshAccessToken(url string) (*Response, error) {
 	return r, nil
 }
 
+/* VerifyAndRefreshJWTToken takes controller url as a prameter and can be called as a response function.
+It uses VerifyAccessToken and RefreshAccessToken functions to verify if the existing access token is expired.
+And tries to refresh it using the refresh token. It throws error in case token is expired and cannot be refreshed.
+*/
 func (r *Response) VerifyAndRefreshJWTToken(url string) (*Response, error) {
 	isValid, err := r.VerifyAccessToken(url)
 	if err != nil {
