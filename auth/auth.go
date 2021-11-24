@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 )
 
 const contentType = "application/json; charset=utf-8"
+
+var client = &http.Client{}
 
 /* Login takes email and controller url as parameters.
 It sends login request to the controller and returns response from controller or error.
@@ -69,7 +72,15 @@ func (r *Response) VerifyAccessToken(url string) (bool, error) {
 		return false, err
 	}
 
-	resp, err := http.Post(url+"/api/v1/token/verify/", contentType, bytes.NewBuffer(jsonReq))
+	urlPath := fmt.Sprintf("%s/api/v1/token/verify/", url)
+	req, err := http.NewRequest("POST", urlPath, bytes.NewBuffer(jsonReq))
+	if err != nil {
+		return false, err
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.Access))
+	req.Header.Add("Content-Type", contentType)
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return false, err
 	}
@@ -92,7 +103,15 @@ func (r *Response) RefreshAccessToken(url string) error {
 		return err
 	}
 
-	resp, err := http.Post(url+"/api/v1/token/refresh/", contentType, bytes.NewBuffer(jsonReq))
+	urlPath := fmt.Sprintf("%s/api/v1/token/refresh/", url)
+	req, err := http.NewRequest("POST", urlPath, bytes.NewBuffer(jsonReq))
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.Access))
+	req.Header.Add("Content-Type", contentType)
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
