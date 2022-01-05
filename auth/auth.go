@@ -45,7 +45,7 @@ func (r *Response) AskOtp() bool {
 }
 
 /* LoginOTP takes email, code/OTP and controller url as parameters.
-LoginOTP should be used in the case if AskOtp is true.
+LoginOTP should be used in the case if AskOtp() returns true.
 */
 func LoginOTP(email string, code string, url string) (Response, error) {
 	jsonReq, err := json.Marshal(emailAndCode{email, code})
