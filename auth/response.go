@@ -8,6 +8,5 @@ type Response struct {
 	SmtpEnabled  bool   `json:"smtp_enabled"`
 	IsOtpEnabled bool   `json:"is_otp_enabled"`
 	ErrorDetail  string `json:"detail"`
-	AskOtp       bool
 	StatusCode   int
 }

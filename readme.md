@@ -8,14 +8,18 @@ Authentication package for golang repositories which sends authentication reques
 
    - `Login( email string, url string ) (Response, error)`
      - *Login takes email and controller url as parameters. It sends login request to the controller and returns response from controller or error.*
-     - *Value of AskOtp is calculated using values of is_otp_enabled and smtp_enabled. To check if OTP is required to login, only check AskOtp value.*
-     - *If AskOtp is false, OTP is not required. Directly login the user in case of correct email.*
-     - *If AskOtp is true, OTP is required. User will receive an email with OTP, ask the user to fill in received OTP to login.*
+     - *If AskOtp() returns false, OTP is not required. Directly login the user in case of correct email.*
+     - *If AskOtp() returns true, OTP is required. User will receive an email with OTP, ask the user to fill in received OTP to login.*
 
    - `LoginOTP( email string, code string, url string ) (Response, error)`
      - *LoginOTP takes email, code/OTP and controller url as parameters.*
-     - *LoginOTP should be used in the case if AskOtp is true.*
+     - *LoginOTP should be used in the case if AskOtp() returns true.*
   
+  -  `(r *Response) AskOtp()`
+     - *Return value of AskOtp() is calculated using values of is_otp_enabled and smtp_enabled. To check if OTP is required to login, use AskOtp().*
+     - *If AskOtp() returns false, OTP is not required. Directly login the user in case of correct email.*
+     - *If AskOtp() returns true, OTP is required. User will receive an email with OTP, ask the user to fill in received OTP to login.*
+
    - `(r *Response) VerifyAccessToken(url string) (bool, error)`
      - *VerifyAccessToken is a function of Response struct which take contoller url as a parameter.*
      - *VerifyAccessToken verifies if the current access_token is expired or not, it returns bool and error.*

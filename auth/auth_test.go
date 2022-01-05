@@ -311,3 +311,25 @@ func TestVerifyAndRefreshAccessTokenError(t *testing.T) {
 		t.Errorf("Unexpected response: %v", resp.Refresh)
 	}
 }
+
+func TestAskOtpTrue(t *testing.T) {
+	expectedResult := true
+	resp := Response{Refresh: "some_refresh", Access: "some_access", SmtpEnabled: true, IsOtpEnabled: true}
+
+	result := resp.AskOtp()
+
+	if result != expectedResult {
+		t.Errorf("Unexpected response. Expected: %v but got: %v ", expectedResult, result)
+	}
+}
+
+func TestAskOtpFalse(t *testing.T) {
+	expectedResult := false
+	resp := Response{Refresh: "some_refresh", Access: "some_access", SmtpEnabled: true, IsOtpEnabled: false}
+
+	result := resp.AskOtp()
+
+	if result != expectedResult {
+		t.Errorf("Unexpected response. Expected: %v but got: %v ", expectedResult, result)
+	}
+}
