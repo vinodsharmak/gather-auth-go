@@ -312,24 +312,25 @@ func TestVerifyAndRefreshAccessTokenError(t *testing.T) {
 	}
 }
 
-func TestAskOtpTrue(t *testing.T) {
-	expectedResult := true
-	resp := Response{Refresh: "some_refresh", Access: "some_access", SmtpEnabled: true, IsOtpEnabled: true}
+func TestAskOtp(t *testing.T) {
+	askOtpTrueResponse := true
+	askOtpFalseResponse := false
 
-	result := resp.AskOtp()
-
-	if result != expectedResult {
-		t.Errorf("Unexpected response. Expected: %v but got: %v ", expectedResult, result)
+	tests := []struct {
+		name string
+		resp Response
+		want bool
+	}{
+		{name: "AskOtpTrue", resp: Response{SmtpEnabled: true, IsOtpEnabled: true}, want: askOtpTrueResponse},
+		{name: "AskOtpFalse1", resp: Response{SmtpEnabled: false, IsOtpEnabled: true}, want: askOtpFalseResponse},
+		{name: "AskOtpFalse2", resp: Response{SmtpEnabled: true, IsOtpEnabled: false}, want: askOtpFalseResponse},
+		{name: "AskOtpFalse3", resp: Response{SmtpEnabled: false, IsOtpEnabled: false}, want: askOtpFalseResponse},
 	}
-}
-
-func TestAskOtpFalse(t *testing.T) {
-	expectedResult := false
-	resp := Response{Refresh: "some_refresh", Access: "some_access", SmtpEnabled: true, IsOtpEnabled: false}
-
-	result := resp.AskOtp()
-
-	if result != expectedResult {
-		t.Errorf("Unexpected response. Expected: %v but got: %v ", expectedResult, result)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.resp.AskOtp() != tt.want {
+				t.Errorf("Unexpected response. Expected: %v but got: %v ", tt.want, tt.resp.AskOtp())
+			}
+		})
 	}
 }
