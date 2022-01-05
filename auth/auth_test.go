@@ -328,8 +328,9 @@ func TestAskOtp(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.resp.AskOtp() != tt.want {
-				t.Errorf("Unexpected response. Expected: %v but got: %v ", tt.want, tt.resp.AskOtp())
+			result := tt.resp.AskOtp()
+			if result != tt.want {
+				t.Errorf("Unexpected response. Expected: %v but got: %v ", tt.want, result)
 			}
 		})
 	}
