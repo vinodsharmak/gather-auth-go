@@ -32,13 +32,17 @@ func Login(anEmail string, url string) (Response, error) {
 		return data, err
 	}
 
+	if data.IsOtpEnabled && data.SmtpEnabled {
+		data.AskOtp = true
+	}
+
 	data.StatusCode = resp.StatusCode
 
 	return data, nil
 }
 
 /* LoginOTP takes email, code/OTP and controller url as parameters.
-LoginOTP should be used in the case if smtp is enabled.
+LoginOTP should be used in the case if AskOtp is true.
 */
 func LoginOTP(email string, code string, url string) (Response, error) {
 	jsonReq, err := json.Marshal(emailAndCode{email, code})
