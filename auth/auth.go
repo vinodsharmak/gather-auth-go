@@ -37,8 +37,15 @@ func Login(anEmail string, url string) (Response, error) {
 	return data, nil
 }
 
+/* AskOtp checks if otp is required using values is_otp_enabled and smtp_enabled.
+It return boolean value, true if otp required and false if not required.
+*/
+func (r *Response) AskOtp() bool {
+	return r.IsOtpEnabled && r.SmtpEnabled
+}
+
 /* LoginOTP takes email, code/OTP and controller url as parameters.
-LoginOTP should be used in the case if smtp is enabled.
+LoginOTP should be used in the case if AskOtp() returns true.
 */
 func LoginOTP(email string, code string, url string) (Response, error) {
 	jsonReq, err := json.Marshal(emailAndCode{email, code})

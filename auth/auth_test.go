@@ -311,3 +311,27 @@ func TestVerifyAndRefreshAccessTokenError(t *testing.T) {
 		t.Errorf("Unexpected response: %v", resp.Refresh)
 	}
 }
+
+func TestAskOtp(t *testing.T) {
+	askOtpTrueResponse := true
+	askOtpFalseResponse := false
+
+	tests := []struct {
+		name string
+		resp Response
+		want bool
+	}{
+		{name: "AskOtpTrue", resp: Response{SmtpEnabled: true, IsOtpEnabled: true}, want: askOtpTrueResponse},
+		{name: "AskOtpFalse1", resp: Response{SmtpEnabled: false, IsOtpEnabled: true}, want: askOtpFalseResponse},
+		{name: "AskOtpFalse2", resp: Response{SmtpEnabled: true, IsOtpEnabled: false}, want: askOtpFalseResponse},
+		{name: "AskOtpFalse3", resp: Response{SmtpEnabled: false, IsOtpEnabled: false}, want: askOtpFalseResponse},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.resp.AskOtp()
+			if result != tt.want {
+				t.Errorf("Unexpected response. Expected: %v but got: %v ", tt.want, result)
+			}
+		})
+	}
+}
