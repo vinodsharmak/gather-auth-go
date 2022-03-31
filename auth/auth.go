@@ -12,7 +12,7 @@ const contentType = "application/json; charset=utf-8"
 
 var client = &http.Client{}
 
-/* Login takes email and controller url as parameters.
+/*Login takes email and controller url as parameters.
 It sends login request to the controller and returns response from controller or error.
 */
 func Login(anEmail string, url string) (Response, error) {
@@ -37,15 +37,15 @@ func Login(anEmail string, url string) (Response, error) {
 	return data, nil
 }
 
-/* AskOtp checks if otp is required using values is_otp_enabled and smtp_enabled.
+/*AskOtp checks if otp is required using values is_otp_enabled and smtp_enabled.
 It return boolean value, true if otp required and false if not required.
 */
 func (r *Response) AskOtp() bool {
-	return r.IsOtpEnabled && r.SmtpEnabled
+	return r.IsOtpEnabled && r.SMTPEnabled
 }
 
-/* LoginOTP takes email, code/OTP and controller url as parameters.
-LoginOTP should be used in the case if AskOtp() returns true.
+/*LoginOTP takes email, code/OTP and controller url as parameters.
+It should be used in the case if AskOtp() returns true.
 */
 func LoginOTP(email string, code string, url string) (Response, error) {
 	jsonReq, err := json.Marshal(emailAndCode{email, code})
@@ -70,7 +70,7 @@ func LoginOTP(email string, code string, url string) (Response, error) {
 	return data, nil
 }
 
-/* VerifyAccessToken takes controller url as parameter and can only be called as a Response function
+/*VerifyAccessToken takes controller url as parameter and can only be called as a Response function
 It verfies the if the access token is still valid and returns false if expired or true if still valid.
 */
 func (r *Response) VerifyAccessToken(url string) (bool, error) {
@@ -98,11 +98,10 @@ func (r *Response) VerifyAccessToken(url string) (bool, error) {
 	}
 
 	return true, nil
-
 }
 
-/* RefreshAccessToken takes controller url as a prameter and can be called as a response function.
-It refresh the access token using the existing refresh token
+/*RefreshAccessToken takes controller url as a prameter and can be called as a response function.
+It refresh the access token using the existing refresh token.
 */
 func (r *Response) RefreshAccessToken(url string) error {
 	jsonReq, err := json.Marshal(refreshAccessToken{r.Refresh})
@@ -134,9 +133,9 @@ func (r *Response) RefreshAccessToken(url string) error {
 	return nil
 }
 
-/* VerifyAndRefreshJWTToken takes controller url as a prameter and can be called as a response function.
+/*VerifyAndRefreshAccessToken takes controller url as a prameter and can be called as a response function.
 It uses VerifyAccessToken and RefreshAccessToken functions to verify if the existing access token is expired.
-And tries to refresh it using the refresh token. It throws error in case token is expired and cannot be refreshed.
+and tries to refresh it using the refresh token. It throws error in case token is expired and cannot be refreshed.
 */
 func (r *Response) VerifyAndRefreshAccessToken(url string) error {
 	isValid, err := r.VerifyAccessToken(url)

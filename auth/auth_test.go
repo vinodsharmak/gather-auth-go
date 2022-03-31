@@ -18,8 +18,10 @@ func TestLoginSuccess(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		w.WriteHeader(expectedStatusCode)
-		io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": false}`)
-
+		_, err = io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": false}`)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
 	}))
 	defer server.Close()
 
@@ -36,8 +38,8 @@ func TestLoginSuccess(t *testing.T) {
 	if response.Refresh != "some_refresh_value" {
 		t.Errorf("Unexpected response! Expeced refresh:some_refresh_value but got refresh:%v", response.Refresh)
 	}
-
 }
+
 func TestLoginFail(t *testing.T) {
 	expectedStatusCode := http.StatusNotFound
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +50,10 @@ func TestLoginFail(t *testing.T) {
 		}
 
 		w.WriteHeader(expectedStatusCode)
-		io.WriteString(w, `{"detail": "Invalid email id."}`)
+		_, err = io.WriteString(w, `{"detail": "Invalid email id."}`)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
 	}))
 	defer server.Close()
 
@@ -62,7 +67,6 @@ func TestLoginFail(t *testing.T) {
 	if response.ErrorDetail != "Invalid email id." {
 		t.Errorf("Unexpected ErrorMessage. Expected ErrorDetail: Invalid email id., but got %v", response.ErrorDetail)
 	}
-
 }
 
 func TestLoginOTPSuccess(t *testing.T) {
@@ -74,8 +78,12 @@ func TestLoginOTPSuccess(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		w.WriteHeader(expectedStatusCode)
-		io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": true}`)
+		_, err = io.WriteString(w, `{"refresh": "some_refresh_value", "access": "some_access_value", "department": "some_department_name", "smtp_enabled": true}`)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
 	}))
+
 	defer server.Close()
 
 	response, err := LoginOTP("demo@gather.network", "abc123", server.URL)
@@ -91,7 +99,6 @@ func TestLoginOTPSuccess(t *testing.T) {
 	if response.Refresh != "some_refresh_value" {
 		t.Errorf("Unexpected response! Expeced refresh:some_refresh_value but got refresh:%v", response.Refresh)
 	}
-
 }
 
 func TestLoginOTPFail(t *testing.T) {
@@ -103,8 +110,10 @@ func TestLoginOTPFail(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		w.WriteHeader(expectedStatusCode)
-		io.WriteString(w, `{"detail": "Invalid Credentials!"}`)
-
+		_, err = io.WriteString(w, `{"detail": "Invalid Credentials!"}`)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
 	}))
 	defer server.Close()
 
@@ -118,8 +127,8 @@ func TestLoginOTPFail(t *testing.T) {
 	if response.ErrorDetail != "Invalid Credentials!" {
 		t.Errorf("Unexpected ErrorMessage. Expected ErrorDetail: Invalid Credentials!, but got %v", response.ErrorDetail)
 	}
-
 }
+
 func TestVerifyAccessTokenSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var response Response
@@ -143,6 +152,7 @@ func TestVerifyAccessTokenSuccess(t *testing.T) {
 		t.Errorf("Expected true on request, but got %v", response)
 	}
 }
+
 func TestVerifyAccessTokenFail(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var accessToken verifyAccessToken
@@ -174,7 +184,10 @@ func TestRefreshAccessTokenSuccess(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		w.WriteHeader(expectedStatusCode)
-		io.WriteString(w, `{"access":"new_access_token","refresh":"new_refresh_token"}`)
+		_, err = io.WriteString(w, `{"access":"new_access_token","refresh":"new_refresh_token"}`)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
 	}))
 	defer server.Close()
 
@@ -203,7 +216,10 @@ func TestRefreshAccessTokenFail(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		w.WriteHeader(expectedStatusCode)
-		io.WriteString(w, `{"detail":"Token_is_Invalid"}`)
+		_, err = io.WriteString(w, `{"detail":"Token_is_Invalid"}`)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
 	}))
 	defer server.Close()
 
@@ -321,10 +337,10 @@ func TestAskOtp(t *testing.T) {
 		resp Response
 		want bool
 	}{
-		{name: "AskOtpTrue", resp: Response{SmtpEnabled: true, IsOtpEnabled: true}, want: askOtpTrueResponse},
-		{name: "AskOtpFalse1", resp: Response{SmtpEnabled: false, IsOtpEnabled: true}, want: askOtpFalseResponse},
-		{name: "AskOtpFalse2", resp: Response{SmtpEnabled: true, IsOtpEnabled: false}, want: askOtpFalseResponse},
-		{name: "AskOtpFalse3", resp: Response{SmtpEnabled: false, IsOtpEnabled: false}, want: askOtpFalseResponse},
+		{name: "AskOtpTrue", resp: Response{SMTPEnabled: true, IsOtpEnabled: true}, want: askOtpTrueResponse},
+		{name: "AskOtpFalse1", resp: Response{SMTPEnabled: false, IsOtpEnabled: true}, want: askOtpFalseResponse},
+		{name: "AskOtpFalse2", resp: Response{SMTPEnabled: true, IsOtpEnabled: false}, want: askOtpFalseResponse},
+		{name: "AskOtpFalse3", resp: Response{SMTPEnabled: false, IsOtpEnabled: false}, want: askOtpFalseResponse},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
