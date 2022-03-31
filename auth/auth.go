@@ -41,7 +41,7 @@ func Login(anEmail string, url string) (Response, error) {
 It return boolean value, true if otp required and false if not required.
 */
 func (r *Response) AskOtp() bool {
-	return r.IsOtpEnabled && r.SmtpEnabled
+	return r.IsOtpEnabled && r.SMTPEnabled
 }
 
 /* LoginOTP takes email, code/OTP and controller url as parameters.
@@ -98,11 +98,10 @@ func (r *Response) VerifyAccessToken(url string) (bool, error) {
 	}
 
 	return true, nil
-
 }
 
 /* RefreshAccessToken takes controller url as a prameter and can be called as a response function.
-It refresh the access token using the existing refresh token
+It refresh the access token using the existing refresh token.
 */
 func (r *Response) RefreshAccessToken(url string) error {
 	jsonReq, err := json.Marshal(refreshAccessToken{r.Refresh})
