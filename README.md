@@ -14,7 +14,7 @@ Authentication package for golang repositories which sends authentication reques
    - `LoginOTP( email string, code string, url string ) (Response, error)`
      - *LoginOTP takes email, code/OTP and controller url as parameters.*
      - *LoginOTP should be used in the case if AskOtp() returns true.*
-  
+
   -  `(r *Response) AskOtp()`
      - *Return value of AskOtp() is calculated using values of is_otp_enabled and smtp_enabled. To check if OTP is required to login, use AskOtp().*
      - *If AskOtp() returns false, OTP is not required. Directly login the user in case of correct email.*
