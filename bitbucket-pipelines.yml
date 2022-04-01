@@ -25,8 +25,11 @@ definitions:
 
 pipelines:
   default:
-    - step:
-        <<: *lint
+    - parallel:
+        - step:
+            <<: *lint
+        - step:
+            <<: *test
   pull-requests:
       '**':
       - parallel:
