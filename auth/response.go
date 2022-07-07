@@ -10,3 +10,7 @@ type Response struct {
 	ErrorDetail  string `json:"detail"`
 	StatusCode   int
 }
+
+type VerifyResponse struct {
+	Detail bool `json:"detail"`
+}
