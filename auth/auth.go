@@ -94,7 +94,7 @@ func LoginOTP(email string, code string, url string, args ...interface{}) (Respo
 /*VerifyAccessToken takes controller url as parameter and can only be called as a Response function
 It verfies the if the access token is still valid and returns false if expired or true if still valid.
 */
-func (r *Response) VerifyAccessToken(url string, args ...interface{}) (bool, error) {
+func (r *Response) VerifyAccessToken(url string) (bool, error) {
 	jsonReq, err := json.Marshal(verifyAccessToken{r.Access})
 	if err != nil {
 		return false, err
@@ -107,9 +107,6 @@ func (r *Response) VerifyAccessToken(url string, args ...interface{}) (bool, err
 	}
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.Access))
 	req.Header.Add("Content-Type", contentType)
-	if len(args) > 0 {
-		req.Header.Add("Request-Source", fmt.Sprintf("%s", args[0]))
-	}
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -117,14 +114,13 @@ func (r *Response) VerifyAccessToken(url string, args ...interface{}) (bool, err
 	}
 	defer resp.Body.Close()
 
-	var data VerifyResponse
-	err = json.NewDecoder(resp.Body).Decode(&data)
-	if err != nil {
-		return false, err
-	}
-
 	if resp.StatusCode == http.StatusOK {
-		if len(args) > 0 && !data.Detail {
+		var data VerifyResponse
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return false, err
+		}
+		if !data.IsWorkerNode {
 			return false, errors.New("access is restricted")
 		}
 		return true, nil
@@ -136,7 +132,7 @@ func (r *Response) VerifyAccessToken(url string, args ...interface{}) (bool, err
 /*RefreshAccessToken takes controller url as a prameter and can be called as a response function.
 It refresh the access token using the existing refresh token.
 */
-func (r *Response) RefreshAccessToken(url string, args ...interface{}) error {
+func (r *Response) RefreshAccessToken(url string) error {
 	jsonReq, err := json.Marshal(refreshAccessToken{r.Refresh})
 	if err != nil {
 		return err
@@ -149,9 +145,6 @@ func (r *Response) RefreshAccessToken(url string, args ...interface{}) error {
 	}
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", r.Access))
 	req.Header.Add("Content-Type", contentType)
-	if len(args) > 0 {
-		req.Header.Add("Request-Source", fmt.Sprintf("%s", args[0]))
-	}
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -159,9 +152,6 @@ func (r *Response) RefreshAccessToken(url string, args ...interface{}) error {
 	}
 	defer resp.Body.Close()
 
-	if len(args) > 0 && resp.StatusCode == http.StatusForbidden {
-		return errors.New("access is restricted")
-	}
 	r.StatusCode = resp.StatusCode
 
 	err = json.NewDecoder(resp.Body).Decode(&r)
@@ -176,14 +166,14 @@ func (r *Response) RefreshAccessToken(url string, args ...interface{}) error {
 It uses VerifyAccessToken and RefreshAccessToken functions to verify if the existing access token is expired.
 and tries to refresh it using the refresh token. It throws error in case token is expired and cannot be refreshed.
 */
-func (r *Response) VerifyAndRefreshAccessToken(url string, args ...interface{}) error {
-	isValid, err := r.VerifyAccessToken(url, args)
+func (r *Response) VerifyAndRefreshAccessToken(url string) error {
+	isValid, err := r.VerifyAccessToken(url)
 	if err != nil {
 		return err
 	}
 
 	if !isValid {
-		err := r.RefreshAccessToken(url, args)
+		err := r.RefreshAccessToken(url)
 		if err != nil {
 			return err
 		}

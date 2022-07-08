@@ -131,11 +131,13 @@ func TestLoginOTPFail(t *testing.T) {
 
 func TestVerifyAccessTokenSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var response Response
-		err := json.NewDecoder(r.Body).Decode(&response)
+		var request Response
+		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
+		response := `{"is_worker_node": true}`
+		w.Write([]byte(response))
 	}))
 	defer server.Close()
 
@@ -238,11 +240,13 @@ func TestRefreshAccessTokenFail(t *testing.T) {
 
 func TestVerifyAndRefreshAccessTokenStatusOK(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var response Response
-		err := json.NewDecoder(r.Body).Decode(&response)
+		var request Response
+		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
+		response := `{"is_worker_node": true}`
+		w.Write([]byte(response))
 	}))
 	defer server.Close()
 

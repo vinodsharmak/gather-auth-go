@@ -12,5 +12,5 @@ type Response struct {
 }
 
 type VerifyResponse struct {
-	Detail bool `json:"detail"`
+	IsWorkerNode bool `json:"is_worker_node"`
 }
