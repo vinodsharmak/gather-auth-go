@@ -137,7 +137,8 @@ func TestVerifyAccessTokenSuccess(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		response := `{"is_worker_node": true}`
-		w.Write([]byte(response))
+		responseByte := []byte(response)
+		w.Write([]byte(responseByte))
 	}))
 	defer server.Close()
 
@@ -246,7 +247,8 @@ func TestVerifyAndRefreshAccessTokenStatusOK(t *testing.T) {
 			log.Fatalf(err.Error())
 		}
 		response := `{"is_worker_node": true}`
-		w.Write([]byte(response))
+		responseByte := []byte(response)
+		w.Write([]byte(responseByte))
 	}))
 	defer server.Close()
 
