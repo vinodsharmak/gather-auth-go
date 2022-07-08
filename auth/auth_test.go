@@ -141,7 +141,6 @@ func TestVerifyAccessTokenSuccess(t *testing.T) {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-
 	}))
 	defer server.Close()
 
