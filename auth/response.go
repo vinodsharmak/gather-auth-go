@@ -10,3 +10,7 @@ type Response struct {
 	ErrorDetail  string `json:"detail"`
 	StatusCode   int
 }
+
+type VerifyResponse struct {
+	IsWorkerNode bool `json:"is_worker_node"`
+}
