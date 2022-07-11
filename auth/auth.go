@@ -21,7 +21,7 @@ func Login(anEmail string, url string, args ...interface{}) (Response, error) {
 		return Response{}, err
 	}
 
-	req, err := http.NewRequest("POST", url+"/api/v1/token/", bytes.NewReader(requestByte))
+	req, err := http.NewRequest(http.MethodPost, url+"/api/v1/token/", bytes.NewReader(requestByte))
 	if err != nil {
 		return Response{}, err
 	}
@@ -64,7 +64,7 @@ func LoginOTP(email string, code string, url string, args ...interface{}) (Respo
 		return Response{}, err
 	}
 
-	req, err := http.NewRequest("POST", url+"/api/v1/token/code/", bytes.NewReader(jsonReq))
+	req, err := http.NewRequest(http.MethodPost, url+"/api/v1/token/code/", bytes.NewReader(jsonReq))
 	if err != nil {
 		return Response{}, err
 	}
@@ -101,7 +101,7 @@ func (r *Response) VerifyAccessToken(url string) (bool, error) {
 	}
 
 	urlPath := fmt.Sprintf("%s/api/v1/token/verify/", url)
-	req, err := http.NewRequest("POST", urlPath, bytes.NewBuffer(jsonReq))
+	req, err := http.NewRequest(http.MethodPost, urlPath, bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return false, err
 	}
@@ -139,7 +139,7 @@ func (r *Response) RefreshAccessToken(url string) error {
 	}
 
 	urlPath := fmt.Sprintf("%s/api/v1/token/refresh/", url)
-	req, err := http.NewRequest("POST", urlPath, bytes.NewBuffer(jsonReq))
+	req, err := http.NewRequest(http.MethodPost, urlPath, bytes.NewBuffer(jsonReq))
 	if err != nil {
 		return err
 	}
