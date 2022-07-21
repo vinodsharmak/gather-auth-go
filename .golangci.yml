@@ -53,7 +53,7 @@ linters:
     - unused
     - varcheck
     - whitespace
-    - gofumpt
+    # - gofumpt # commented because gofumpt need 1.17 or higher version of go. currently we should use 1.16
     - grouper
     # - wrapcheck
     - bidichk
