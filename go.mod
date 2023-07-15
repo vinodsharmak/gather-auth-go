@@ -1,3 +1,3 @@
-module bitbucket.org/gath3rio/gather-auth-go
+module github.com/vinodsharmak/gather-auth-go
 
 go 1.16
